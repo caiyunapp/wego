@@ -177,6 +177,22 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 				x := float32(weatherDailyData.Temperature08H20H[i].Avg)
 				return &x
 			}(),
+			VisibleDistM: func() *float32 {
+				x := float32(weatherDailyData.Visibility[i].Avg)
+				return &x
+			}(),
+			Humidity: func() *int {
+				x := int(weatherDailyData.Humidity[i].Avg)
+				return &x
+			}(),
+			WindspeedKmph: func() *float32 {
+				x := float32(weatherDailyData.Wind08H20H[i].Avg.Speed)
+				return &x
+			}(),
+			WinddirDegree: func() *int {
+				x := int(weatherDailyData.Wind08H20H[i].Avg.Direction)
+				return &x
+			}(),
 			Time: func() time.Time {
 				x, err := time.Parse(CAIYUNDATE_TMPL, weatherDailyData.Temperature[i].Date)
 				if err != nil {
@@ -206,6 +222,22 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 				x := float32(weatherDailyData.Temperature08H20H[i].Avg)
 				return &x
 			}(),
+			VisibleDistM: func() *float32 {
+				x := float32(weatherDailyData.Visibility[i].Avg)
+				return &x
+			}(),
+			Humidity: func() *int {
+				x := int(weatherDailyData.Humidity[i].Avg)
+				return &x
+			}(),
+			WindspeedKmph: func() *float32 {
+				x := float32(weatherDailyData.Wind08H20H[i].Avg.Speed)
+				return &x
+			}(),
+			WinddirDegree: func() *int {
+				x := int(weatherDailyData.Wind08H20H[i].Avg.Direction)
+				return &x
+			}(),
 			Time: func() time.Time {
 				x, err := time.Parse(CAIYUNDATE_TMPL, weatherDailyData.Temperature[i].Date)
 				if err != nil {
@@ -232,7 +264,23 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 		// Evening
 		dailyData.Slots = append(dailyData.Slots, iface.Cond{
 			TempC: func() *float32 {
-				x := float32(weatherDailyData.Temperature08H20H[i].Avg)
+				x := float32(weatherDailyData.Temperature20H32H[i].Avg)
+				return &x
+			}(),
+			VisibleDistM: func() *float32 {
+				x := float32(weatherDailyData.Visibility[i].Avg)
+				return &x
+			}(),
+			Humidity: func() *int {
+				x := int(weatherDailyData.Humidity[i].Avg)
+				return &x
+			}(),
+			WindspeedKmph: func() *float32 {
+				x := float32(weatherDailyData.Wind20H32H[i].Avg.Speed)
+				return &x
+			}(),
+			WinddirDegree: func() *int {
+				x := int(weatherDailyData.Wind20H32H[i].Avg.Direction)
 				return &x
 			}(),
 			Time: func() time.Time {
@@ -243,7 +291,7 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 				return x
 			}(),
 			Code: func() iface.WeatherCode {
-				if code, ok := SkyconToIfaceCode[weatherDailyData.Skycon08H20H[i].Value]; ok {
+				if code, ok := SkyconToIfaceCode[weatherDailyData.Skycon20H32H[i].Value]; ok {
 					return code
 				} else {
 					return iface.CodeUnknown
@@ -262,6 +310,22 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 		dailyData.Slots = append(dailyData.Slots, iface.Cond{
 			TempC: func() *float32 {
 				x := float32(weatherDailyData.Temperature20H32H[i].Avg)
+				return &x
+			}(),
+			VisibleDistM: func() *float32 {
+				x := float32(weatherDailyData.Visibility[i].Avg)
+				return &x
+			}(),
+			Humidity: func() *int {
+				x := int(weatherDailyData.Humidity[i].Avg)
+				return &x
+			}(),
+			WindspeedKmph: func() *float32 {
+				x := float32(weatherDailyData.Wind20H32H[i].Avg.Speed)
+				return &x
+			}(),
+			WinddirDegree: func() *int {
+				x := int(weatherDailyData.Wind20H32H[i].Avg.Direction)
 				return &x
 			}(),
 			Time: func() time.Time {
