@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
+	_ "github.com/ringsaturn/wego/backends"
+	_ "github.com/ringsaturn/wego/frontends"
+	"github.com/ringsaturn/wego/iface"
 	"github.com/schachmat/ingo"
-	_ "github.com/schachmat/wego/backends"
-	_ "github.com/schachmat/wego/frontends"
-	"github.com/schachmat/wego/iface"
 )
 
 func pluginLists() {
