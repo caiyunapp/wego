@@ -107,7 +107,7 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 		return &x
 	}()
 	dailyDataSlice := []iface.Day{}
-	for i := 0; i <= numdays; i++ {
+	for i := 0; i < numdays; i++ {
 		weatherDailyData := weatherData.Result.Daily
 
 		dailyData := iface.Day{
