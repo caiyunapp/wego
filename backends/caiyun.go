@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	CAIYUNAPI       = "http://api.caiyunapp.com/v2.6/%s/%s/weather?lang=%s&alert=true&unit=metric:v2"
+	CAIYUNAPI       = "http://api.caiyunapp.com/v2.6/%s/%s/weather?lang=%s&dailysteps=%s&alert=true&unit=metric:v2"
 	CAIYUNDATE_TMPL = "2006-01-02T15:04-07:00"
 )
 
@@ -61,7 +61,7 @@ func init() {
 
 func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 	res := iface.Data{}
-	url := fmt.Sprintf(CAIYUNAPI, c.apiKey, location, c.lang)
+	url := fmt.Sprintf(CAIYUNAPI, c.apiKey, location, c.lang, strconv.FormatInt(int64(numdays), 10))
 	resp, err := http.Get(url)
 	if err != nil {
 		panic(err)
