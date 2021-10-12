@@ -247,9 +247,6 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 		Latitude:  float32(weatherData.Location[0]),
 		Longitude: float32(weatherData.Location[1]),
 	}
-
-	d, _ := json.Marshal(res)
-	fmt.Println(string(d))
 	return res
 }
 
