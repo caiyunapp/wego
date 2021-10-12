@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/schachmat/wego/iface"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/ringsaturn/wego/iface"
 )
 
 type openWeatherConfig struct {
@@ -72,7 +73,7 @@ func (c *openWeatherConfig) fetch(url string) (*openWeatherResponse, error) {
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read response body (%s): %v", url, err)
+		return nil, fmt.Errorf("unable to read response body (%s): %v", url, err)
 	}
 
 	if c.debug {
@@ -81,10 +82,10 @@ func (c *openWeatherConfig) fetch(url string) (*openWeatherResponse, error) {
 
 	var resp openWeatherResponse
 	if err = json.Unmarshal(body, &resp); err != nil {
-		return nil, fmt.Errorf("Unable to unmarshal response (%s): %v\nThe json body is: %s", url, err, string(body))
+		return nil, fmt.Errorf("unable to unmarshal response (%s): %v\nThe json body is: %s", url, err, string(body))
 	}
 	if resp.Cod != "200" {
-		return nil, fmt.Errorf("Erroneous response body: %s", string(body))
+		return nil, fmt.Errorf("erroneous response body: %s", string(body))
 	}
 	return &resp, nil
 }
