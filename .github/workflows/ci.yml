@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GOPROXY: https://proxy.golang.org
+      PROTOC_ZIP: protoc-3.14.0-linux-x86_64.zip
+    strategy:
+      matrix:
+        go: ["1.17"]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install go pkgs
+        run: |
+          go mod download
+
+      - name: Build
+        run: go build
+
+      # - name: Install test related deps
+      #   run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest
+
+      # - name: Test
+      #   run: |
+      #     golangci-lint run ./...
