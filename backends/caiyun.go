@@ -108,6 +108,22 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 		x := float32(weatherData.Result.Realtime.Precipitation.Local.Intensity)
 		return &x
 	}()
+	res.Current.FeelsLikeC = func() *float32 {
+		x := float32(weatherData.Result.Realtime.ApparentTemperature)
+		return &x
+	}()
+	res.Current.Humidity = func() *int {
+		x := int(weatherData.Result.Realtime.Humidity * 100)
+		return &x
+	}()
+	res.Current.ChanceOfRainPercent = func() *int {
+		x := int(weatherData.Result.Minutely.Probability[0] * 100)
+		return &x
+	}()
+	res.Current.VisibleDistM = func() *float32 {
+		x := float32(weatherData.Result.Realtime.Visibility)
+		return &x
+	}()
 	dailyDataSlice := []iface.Day{}
 	for i := 0; i < numdays; i++ {
 		weatherDailyData := weatherData.Result.Daily
@@ -180,6 +196,10 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 				x := float32(weatherDailyData.Precipitation[i].Avg) / 1000
 				return &x
 			}(),
+			FeelsLikeC: func() *float32 {
+				x := float32(weatherDailyData.Temperature[i].Avg)
+				return &x
+			}(),
 		})
 		// Noon
 		dailyData.Slots = append(dailyData.Slots, iface.Cond{
@@ -203,6 +223,10 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 			}(),
 			PrecipM: func() *float32 {
 				x := float32(weatherDailyData.Precipitation[i].Avg) / 1000
+				return &x
+			}(),
+			FeelsLikeC: func() *float32 {
+				x := float32(weatherDailyData.Temperature[i].Avg)
 				return &x
 			}(),
 		})
@@ -230,6 +254,10 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 				x := float32(weatherDailyData.Precipitation[i].Avg) / 1000
 				return &x
 			}(),
+			FeelsLikeC: func() *float32 {
+				x := float32(weatherDailyData.Temperature[i].Avg)
+				return &x
+			}(),
 		})
 		// Night
 		dailyData.Slots = append(dailyData.Slots, iface.Cond{
@@ -253,6 +281,10 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 			}(),
 			PrecipM: func() *float32 {
 				x := float32(weatherDailyData.Precipitation[i].Avg) / 1000
+				return &x
+			}(),
+			FeelsLikeC: func() *float32 {
+				x := float32(weatherDailyData.Temperature[i].Avg)
 				return &x
 			}(),
 		})
