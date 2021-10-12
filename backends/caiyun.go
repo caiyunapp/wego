@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ringsaturn/wego/iface"
@@ -106,6 +108,22 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 		x := float32(weatherData.Result.Realtime.Precipitation.Local.Intensity)
 		return &x
 	}()
+	res.Current.FeelsLikeC = func() *float32 {
+		x := float32(weatherData.Result.Realtime.ApparentTemperature)
+		return &x
+	}()
+	res.Current.Humidity = func() *int {
+		x := int(weatherData.Result.Realtime.Humidity * 100)
+		return &x
+	}()
+	res.Current.ChanceOfRainPercent = func() *int {
+		x := int(weatherData.Result.Minutely.Probability[0] * 100)
+		return &x
+	}()
+	res.Current.VisibleDistM = func() *float32 {
+		x := float32(weatherData.Result.Realtime.Visibility)
+		return &x
+	}()
 	dailyDataSlice := []iface.Day{}
 	for i := 0; i < numdays; i++ {
 		weatherDailyData := weatherData.Result.Daily
@@ -118,24 +136,40 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 				}
 				return x
 			}(),
-			// Astronomy: iface.Astro{
-			// 	Sunrise: func() time.Time {
-			// 		fmt.Println("weatherDailyData.Astro[i].Sunrise.Time", weatherDailyData.Astro[i].Sunrise.Time)
-			// 		x, err := time.Parse(CAIYUNDATE_TMPL, weatherDailyData.Astro[i].Sunrise.Time)
-			// 		if err != nil {
-			// 			panic(err)
-			// 		}
-			// 		return x
-			// 	}(),
-			// 	Sunset: func() time.Time {
-			// 		x, err := time.Parse(CAIYUNDATE_TMPL, weatherDailyData.Astro[i].Sunset.Time)
-			// 		if err != nil {
-			// 			panic(err)
-			// 		}
-			// 		return x
-			// 	}(),
-			// },
 			Slots: []iface.Cond{},
+		}
+
+		dailyData.Astronomy = iface.Astro{
+			Sunrise: func() time.Time {
+				s := strings.Split(weatherDailyData.Astro[i].Sunset.Time, ":")
+				hourStr := s[0]
+				minuteStr := s[1]
+				hour, err := strconv.Atoi(hourStr)
+				if err != nil {
+					panic(err)
+				}
+				minute, err := strconv.Atoi(minuteStr)
+				if err != nil {
+					panic(err)
+				}
+				x := time.Date(dailyData.Date.Year(), dailyData.Date.Month(), dailyData.Date.Day(), hour, minute, 0, 0, dailyData.Date.Location())
+				return x
+			}(),
+			Sunset: func() time.Time {
+				s := strings.Split(weatherDailyData.Astro[i].Sunset.Time, ":")
+				hourStr := s[0]
+				minuteStr := s[1]
+				hour, err := strconv.Atoi(hourStr)
+				if err != nil {
+					panic(err)
+				}
+				minute, err := strconv.Atoi(minuteStr)
+				if err != nil {
+					panic(err)
+				}
+				x := time.Date(dailyData.Date.Year(), dailyData.Date.Month(), dailyData.Date.Day(), hour, minute, 0, 0, dailyData.Date.Location())
+				return x
+			}(),
 		}
 
 		// Morning
@@ -160,6 +194,10 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 			}(),
 			PrecipM: func() *float32 {
 				x := float32(weatherDailyData.Precipitation[i].Avg) / 1000
+				return &x
+			}(),
+			FeelsLikeC: func() *float32 {
+				x := float32(weatherDailyData.Temperature[i].Avg)
 				return &x
 			}(),
 		})
@@ -187,6 +225,10 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 				x := float32(weatherDailyData.Precipitation[i].Avg) / 1000
 				return &x
 			}(),
+			FeelsLikeC: func() *float32 {
+				x := float32(weatherDailyData.Temperature[i].Avg)
+				return &x
+			}(),
 		})
 		// Evening
 		dailyData.Slots = append(dailyData.Slots, iface.Cond{
@@ -212,6 +254,10 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 				x := float32(weatherDailyData.Precipitation[i].Avg) / 1000
 				return &x
 			}(),
+			FeelsLikeC: func() *float32 {
+				x := float32(weatherDailyData.Temperature[i].Avg)
+				return &x
+			}(),
 		})
 		// Night
 		dailyData.Slots = append(dailyData.Slots, iface.Cond{
@@ -235,6 +281,10 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 			}(),
 			PrecipM: func() *float32 {
 				x := float32(weatherDailyData.Precipitation[i].Avg) / 1000
+				return &x
+			}(),
+			FeelsLikeC: func() *float32 {
+				x := float32(weatherDailyData.Temperature[i].Avg)
 				return &x
 			}(),
 		})
