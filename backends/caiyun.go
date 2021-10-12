@@ -85,8 +85,7 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 	} else {
 		res.Current.Code = iface.CodeUnknown
 	}
-	if len(weatherData.Result.Alert.Adcodes) != 0 {
-		adcodes := weatherData.Result.Alert.Adcodes
+	if adcodes := weatherData.Result.Alert.Adcodes; len(adcodes) != 0 {
 		if len(adcodes) == 3 {
 			res.Location = adcodes[1].Name + adcodes[2].Name
 		}
