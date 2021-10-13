@@ -98,7 +98,8 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 	if err := json.Unmarshal(body, weatherData); err != nil {
 		panic(err)
 	}
-	res.Current.Desc = weatherData.Result.ForecastKeypoint
+	res.Current.Desc = weatherData.Result.Minutely.Description + "\t" + weatherData.Result.Hourly.Description
+
 	res.Current.TempC = func() *float32 {
 		x := float32(weatherData.Result.Realtime.Temperature)
 		return &x
