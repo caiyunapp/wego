@@ -59,9 +59,32 @@ func init() {
 	}
 }
 
+func ParseCoordinates(latlng string) (float64, float64, error) {
+	s := strings.Split(latlng, ",")
+	if len(s) != 2 {
+		return 0, 0, fmt.Errorf("input %v split to %v parts", latlng, len(s))
+	}
+
+	lat, err := strconv.ParseFloat(s[0], 64)
+	if err != nil {
+		return 0, 0, fmt.Errorf("parse Coodinates failed input %v get parts %v", latlng, s[0])
+	}
+
+	lng, err := strconv.ParseFloat(s[1], 64)
+	if err != nil {
+		return 0, 0, fmt.Errorf("parse Coodinates failed input %v get parts %v", latlng, s[1])
+	}
+	return lat, lng, nil
+}
+
 func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 	res := iface.Data{}
-	url := fmt.Sprintf(CAIYUNAPI, c.apiKey, location, c.lang, strconv.FormatInt(int64(numdays), 10))
+	lat, lng, err := ParseCoordinates(location)
+	if err != nil {
+		panic(err)
+	}
+	cyLocation := fmt.Sprintf("%v,%v", lng, lat)
+	url := fmt.Sprintf(CAIYUNAPI, c.apiKey, cyLocation, c.lang, strconv.FormatInt(int64(numdays), 10))
 	resp, err := http.Get(url)
 	if err != nil {
 		panic(err)
@@ -171,122 +194,59 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 			}(),
 		}
 
-		// Morning
-		dailyData.Slots = append(dailyData.Slots, iface.Cond{
-			TempC: func() *float32 {
-				x := float32(weatherDailyData.Temperature08H20H[i].Avg)
-				return &x
-			}(),
-			Time: func() time.Time {
-				x, err := time.Parse(CAIYUNDATE_TMPL, weatherDailyData.Temperature[i].Date)
-				if err != nil {
-					panic(err)
-				}
-				return x
-			}(),
-			Code: func() iface.WeatherCode {
-				if code, ok := SkyconToIfaceCode[weatherDailyData.Skycon08H20H[i].Value]; ok {
-					return code
-				} else {
-					return iface.CodeUnknown
-				}
-			}(),
-			PrecipM: func() *float32 {
-				x := float32(weatherDailyData.Precipitation[i].Avg) / 1000
-				return &x
-			}(),
-			FeelsLikeC: func() *float32 {
-				x := float32(weatherDailyData.Temperature[i].Avg)
-				return &x
-			}(),
-		})
-		// Noon
-		dailyData.Slots = append(dailyData.Slots, iface.Cond{
-			TempC: func() *float32 {
-				x := float32(weatherDailyData.Temperature08H20H[i].Avg)
-				return &x
-			}(),
-			Time: func() time.Time {
-				x, err := time.Parse(CAIYUNDATE_TMPL, weatherDailyData.Temperature[i].Date)
-				if err != nil {
-					panic(err)
-				}
-				return x
-			}(),
-			Code: func() iface.WeatherCode {
-				if code, ok := SkyconToIfaceCode[weatherDailyData.Skycon08H20H[i].Value]; ok {
-					return code
-				} else {
-					return iface.CodeUnknown
-				}
-			}(),
-			PrecipM: func() *float32 {
-				x := float32(weatherDailyData.Precipitation[i].Avg) / 1000
-				return &x
-			}(),
-			FeelsLikeC: func() *float32 {
-				x := float32(weatherDailyData.Temperature[i].Avg)
-				return &x
-			}(),
-		})
-		// Evening
-		dailyData.Slots = append(dailyData.Slots, iface.Cond{
-			TempC: func() *float32 {
-				x := float32(weatherDailyData.Temperature08H20H[i].Avg)
-				return &x
-			}(),
-			Time: func() time.Time {
-				x, err := time.Parse(CAIYUNDATE_TMPL, weatherDailyData.Temperature[i].Date)
-				if err != nil {
-					panic(err)
-				}
-				return x
-			}(),
-			Code: func() iface.WeatherCode {
-				if code, ok := SkyconToIfaceCode[weatherDailyData.Skycon08H20H[i].Value]; ok {
-					return code
-				} else {
-					return iface.CodeUnknown
-				}
-			}(),
-			PrecipM: func() *float32 {
-				x := float32(weatherDailyData.Precipitation[i].Avg) / 1000
-				return &x
-			}(),
-			FeelsLikeC: func() *float32 {
-				x := float32(weatherDailyData.Temperature[i].Avg)
-				return &x
-			}(),
-		})
-		// Night
-		dailyData.Slots = append(dailyData.Slots, iface.Cond{
-			TempC: func() *float32 {
-				x := float32(weatherDailyData.Temperature20H32H[i].Avg)
-				return &x
-			}(),
-			Time: func() time.Time {
-				x, err := time.Parse(CAIYUNDATE_TMPL, weatherDailyData.Temperature[i].Date)
-				if err != nil {
-					panic(err)
-				}
-				return x
-			}(),
-			Code: func() iface.WeatherCode {
-				if code, ok := SkyconToIfaceCode[weatherDailyData.Skycon20H32H[i].Value]; ok {
-					return code
-				} else {
-					return iface.CodeUnknown
-				}
-			}(),
-			PrecipM: func() *float32 {
-				x := float32(weatherDailyData.Precipitation[i].Avg) / 1000
-				return &x
-			}(),
-			FeelsLikeC: func() *float32 {
-				x := float32(weatherDailyData.Temperature[i].Avg)
-				return &x
-			}(),
-		})
+		dateStr := weatherDailyData.Temperature[i].Date[0:10]
+
+		weatherHourlyData := weatherData.Result.Hourly
+
+		for index, houryTmp := range weatherData.Result.Hourly.Temperature {
+			if !strings.Contains(houryTmp.Datetime, dateStr) {
+				continue
+			}
+			dailyData.Slots = append(dailyData.Slots, iface.Cond{
+				TempC: func() *float32 {
+					x := float32(weatherData.Result.Hourly.Temperature[index].Value)
+					return &x
+				}(),
+				VisibleDistM: func() *float32 {
+					x := float32(weatherHourlyData.Visibility[index].Value)
+					return &x
+				}(),
+				Humidity: func() *int {
+					x := int(weatherHourlyData.Humidity[index].Value)
+					return &x
+				}(),
+				WindspeedKmph: func() *float32 {
+					x := float32(weatherHourlyData.Wind[index].Speed)
+					return &x
+				}(),
+				WinddirDegree: func() *int {
+					x := int(weatherHourlyData.Wind[index].Direction)
+					return &x
+				}(),
+				Time: func() time.Time {
+					x, err := time.Parse(CAIYUNDATE_TMPL, houryTmp.Datetime)
+					if err != nil {
+						panic(err)
+					}
+					return x
+				}(),
+				Code: func() iface.WeatherCode {
+					if code, ok := SkyconToIfaceCode[weatherHourlyData.Skycon[index].Value]; ok {
+						return code
+					} else {
+						return iface.CodeUnknown
+					}
+				}(),
+				PrecipM: func() *float32 {
+					x := float32(weatherHourlyData.Precipitation[index].Value)
+					return &x
+				}(),
+				FeelsLikeC: func() *float32 {
+					x := float32(weatherData.Result.Hourly.ApparentTemperature[index].Value)
+					return &x
+				}(),
+			})
+		}
 
 		dailyDataSlice = append(dailyDataSlice, dailyData)
 	}
