@@ -146,6 +146,13 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 		x := float32(weatherData.Result.Realtime.Visibility)
 		return &x
 	}()
+	res.Current.Time = func() time.Time {
+		loc, err := time.LoadLocation(weatherData.Timezone)
+		if err != nil {
+			panic(err)
+		}
+		return time.Now().In(loc)
+	}()
 	dailyDataSlice := []iface.Day{}
 	for i := 0; i < numdays; i++ {
 		weatherDailyData := weatherData.Result.Daily
