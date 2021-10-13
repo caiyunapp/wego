@@ -74,7 +74,7 @@ func ParseCoordinates(latlng string) (float64, float64, error) {
 	if err != nil {
 		return 0, 0, fmt.Errorf("parse Coodinates failed input %v get parts %v", latlng, s[1])
 	}
-	return lng, lat, nil
+	return lat, lng, nil
 }
 
 func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
