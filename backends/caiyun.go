@@ -127,7 +127,7 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 		return &x
 	}()
 	res.Current.PrecipM = func() *float32 {
-		x := float32(weatherData.Result.Realtime.Precipitation.Local.Intensity)
+		x := float32(weatherData.Result.Realtime.Precipitation.Local.Intensity) / 1000
 		return &x
 	}()
 	res.Current.FeelsLikeC = func() *float32 {
@@ -238,7 +238,7 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 					}
 				}(),
 				PrecipM: func() *float32 {
-					x := float32(weatherHourlyData.Precipitation[index].Value)
+					x := float32(weatherHourlyData.Precipitation[index].Value) / 1000
 					return &x
 				}(),
 				FeelsLikeC: func() *float32 {
