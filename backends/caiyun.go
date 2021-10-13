@@ -59,9 +59,32 @@ func init() {
 	}
 }
 
+func ParseCoordinates(latlng string) (float64, float64, error) {
+	s := strings.Split(latlng, ",")
+	if len(s) != 2 {
+		return 0, 0, fmt.Errorf("input %v split to %v parts", latlng, len(s))
+	}
+
+	lat, err := strconv.ParseFloat(s[0], 64)
+	if err != nil {
+		return 0, 0, fmt.Errorf("parse Coodinates failed input %v get parts %v", latlng, s[0])
+	}
+
+	lng, err := strconv.ParseFloat(s[1], 64)
+	if err != nil {
+		return 0, 0, fmt.Errorf("parse Coodinates failed input %v get parts %v", latlng, s[1])
+	}
+	return lng, lat, nil
+}
+
 func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 	res := iface.Data{}
-	url := fmt.Sprintf(CAIYUNAPI, c.apiKey, location, c.lang, strconv.FormatInt(int64(numdays), 10))
+	lat, lng, err := ParseCoordinates(location)
+	if err != nil {
+		panic(err)
+	}
+	cyLocation := fmt.Sprintf("%v,%v", lng, lat)
+	url := fmt.Sprintf(CAIYUNAPI, c.apiKey, cyLocation, c.lang, strconv.FormatInt(int64(numdays), 10))
 	resp, err := http.Get(url)
 	if err != nil {
 		panic(err)
@@ -215,7 +238,7 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 					}
 				}(),
 				PrecipM: func() *float32 {
-					x := float32(weatherHourlyData.Precipitation[index].Value) / 1000
+					x := float32(weatherHourlyData.Precipitation[index].Value)
 					return &x
 				}(),
 				FeelsLikeC: func() *float32 {
