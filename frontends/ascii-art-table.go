@@ -251,13 +251,6 @@ func (c *aatConfig) formatCond(cur []string, cond iface.Cond, current bool) (ret
 			"\033[38;5;226m   /\033[38;5;250m(___(__) \033[0m",
 			"             ",
 		},
-		iface.CodeClear: {
-			"\033[38;5;226m    \\   /    \033[0m",
-			"\033[38;5;226m     .-.     \033[0m",
-			"\033[38;5;226m  ‒ (   ) ‒  \033[0m",
-			"\033[38;5;226m     `-᾿     \033[0m",
-			"\033[38;5;226m    /   \\    \033[0m",
-		},
 		iface.CodeThunderyHeavyRain: {
 			"\033[38;5;240;1m     .-.     \033[0m",
 			"\033[38;5;240;1m    (   ).   \033[0m",
@@ -289,13 +282,6 @@ func (c *aatConfig) formatCond(cur []string, cond iface.Cond, current bool) (ret
 	}
 
 	nightCodes := map[iface.WeatherCode][]string{
-		iface.CodeClear: {
-			"\033[38;5;21m  *  .-\"\"-.   \033[0m",
-			"\033[38;5;21m    /      \\ \033[0m",
-			"\033[38;5;21m   |        |\033[0m",
-			"\033[38;5;21m    \\      / \033[0m",
-			"\033[38;5;21m *   '-..-'   \033[0m",
-		},
 		iface.CodePartlyCloudy: {
 			"\033[38;5;21m     .-\"\"-.  \033[0m",
 			"\033[38;5;21m    /  \033[38;5;250m.-.\033[38;5;21m \\ \033[0m",
