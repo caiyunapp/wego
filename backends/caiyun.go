@@ -23,7 +23,6 @@ type CaiyunConfig struct {
 	apiKey string
 	lang   string
 	debug  bool
-	tz     *time.Location
 }
 
 func (c *CaiyunConfig) Setup() {
