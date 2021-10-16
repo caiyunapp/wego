@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	CAIYUNAPI       = "http://api.caiyunapp.com/v2.6/%s/%s/weather?lang=%s&dailysteps=%s&alert=true&unit=metric:v2"
+	CAIYUNAPI       = "http://api.caiyunapp.com/v2.6/%s/%s/weather?lang=%s&dailysteps=%s&hourlysteps=%s&alert=true&unit=metric:v2&begin=%s"
 	CAIYUNDATE_TMPL = "2006-01-02T15:04-07:00"
 )
 
@@ -77,25 +77,71 @@ func ParseCoordinates(latlng string) (float64, float64, error) {
 	return lat, lng, nil
 }
 
+func (c *CaiyunConfig) GetWeatherDataFromLocalBegin(lng float64, lat float64, numdays int) (*CaiyunWeather, error) {
+	cyLocation := fmt.Sprintf("%v,%v", lng, lat)
+
+	localBegin, err := func() (*time.Time, error) {
+		now := time.Now()
+		url := fmt.Sprintf(
+			CAIYUNAPI, c.apiKey, cyLocation, c.lang,
+			strconv.FormatInt(int64(numdays), 10), strconv.FormatInt(int64(numdays)*24, 10),
+			strconv.FormatInt(now.Unix(), 10),
+		)
+		resp, err := http.Get(url)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		weatherData := &CaiyunWeather{}
+		if err := json.Unmarshal(body, weatherData); err != nil {
+			return nil, err
+		}
+
+		loc, err := time.LoadLocation(weatherData.Timezone)
+		if err != nil {
+			panic(err)
+		}
+		localNow := now.In(loc)
+		localBegin := time.Date(localNow.Year(), localNow.Month(), localNow.Day(), 0, 0, 0, 0, loc)
+		return &localBegin, nil
+	}()
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf(
+		CAIYUNAPI, c.apiKey, cyLocation, c.lang,
+		strconv.FormatInt(int64(numdays), 10), strconv.FormatInt(int64(numdays)*24, 10),
+		strconv.FormatInt(localBegin.Unix(), 10),
+	)
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	weatherData := &CaiyunWeather{}
+	if err := json.Unmarshal(body, weatherData); err != nil {
+		return nil, err
+	}
+	return weatherData, nil
+}
+
 func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 	res := iface.Data{}
 	lat, lng, err := ParseCoordinates(location)
 	if err != nil {
 		panic(err)
 	}
-	cyLocation := fmt.Sprintf("%v,%v", lng, lat)
-	url := fmt.Sprintf(CAIYUNAPI, c.apiKey, cyLocation, c.lang, strconv.FormatInt(int64(numdays), 10))
-	resp, err := http.Get(url)
+	weatherData, err := c.GetWeatherDataFromLocalBegin(lng, lat, numdays)
 	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-	weatherData := &CaiyunWeather{}
-	if err := json.Unmarshal(body, weatherData); err != nil {
 		panic(err)
 	}
 	res.Current.Desc = weatherData.Result.Minutely.Description + "\t" + weatherData.Result.Hourly.Description
