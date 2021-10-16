@@ -14,28 +14,9 @@ import (
 	"github.com/ringsaturn/wego/iface"
 )
 
-const (
-	CAIYUNAPI       = "http://api.caiyunapp.com/v2.6/%s/%s/weather?lang=%s&dailysteps=%s&hourlysteps=%s&alert=true&unit=metric:v2&begin=%s&granu=%s"
-	CAIYUNDATE_TMPL = "2006-01-02T15:04-07:00"
-)
-
-type CaiyunConfig struct {
-	apiKey string
-	lang   string
-	debug  bool
-	tz     *time.Location
-}
-
-func (c *CaiyunConfig) Setup() {
-	flag.StringVar(&c.apiKey, "caiyun-api-key", "", "caiyun backend: the api `KEY` to use")
-	flag.StringVar(&c.lang, "caiyun-lang", "en", "caiyun backend: the `LANGUAGE` to request from caiyunapp.com/")
-	flag.BoolVar(&c.debug, "caiyun-debug", true, "caiyun backend: print raw requests and responses")
-}
-
 var SkyconToIfaceCode map[string]iface.WeatherCode
 
 func init() {
-	//SkyconToIfaceCode["CLEAR_DAY"] = iface.CodeSunny
 	SkyconToIfaceCode = map[string]iface.WeatherCode{
 		"CLEAR_DAY":           iface.CodeSunny,
 		"CLEAR_NIGHT":         iface.CodeSunny,
@@ -60,6 +41,15 @@ func init() {
 	}
 }
 
+func init() {
+	iface.AllBackends["caiyunapp.com"] = &CaiyunConfig{}
+}
+
+const (
+	CAIYUNAPI       = "http://api.caiyunapp.com/v2.6/%s/%s/weather?lang=%s&dailysteps=%s&hourlysteps=%s&alert=true&unit=metric:v2&begin=%s&granu=%s"
+	CAIYUNDATE_TMPL = "2006-01-02T15:04-07:00"
+)
+
 func ParseCoordinates(latlng string) (float64, float64, error) {
 	s := strings.Split(latlng, ",")
 	if len(s) != 2 {
@@ -78,46 +68,60 @@ func ParseCoordinates(latlng string) (float64, float64, error) {
 	return lat, lng, nil
 }
 
-func (c *CaiyunConfig) GetWeatherDataFromLocalBegin(lng float64, lat float64, numdays int) (*CaiyunWeather, error) {
-	cyLocation := fmt.Sprintf("%v,%v", lng, lat)
+type CaiyunConfig struct {
+	apiKey string
+	lang   string
+	debug  bool
+	tz     *time.Location
+}
 
-	localBegin, err := func() (*time.Time, error) {
-		now := time.Now()
-		url := fmt.Sprintf(
-			CAIYUNAPI, c.apiKey, cyLocation, c.lang,
-			strconv.FormatInt(int64(numdays), 10), strconv.FormatInt(int64(numdays)*24, 10),
-			strconv.FormatInt(now.Unix(), 10),
-			"realtime",
-		)
-		url += "fields=temperature"
-		resp, err := http.Get(url)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-		if c.debug {
-			log.Printf("caiyun request phase 1 %v \n%v\n", url, string(body))
-		}
-		weatherData := &CaiyunWeather{}
-		if err := json.Unmarshal(body, weatherData); err != nil {
-			return nil, err
-		}
+func (c *CaiyunConfig) Setup() {
+	flag.StringVar(&c.apiKey, "caiyun-api-key", "", "caiyun backend: the api `KEY` to use")
+	flag.StringVar(&c.lang, "caiyun-lang", "en", "caiyun backend: the `LANGUAGE` to request from caiyunapp.com/")
+	flag.BoolVar(&c.debug, "caiyun-debug", true, "caiyun backend: print raw requests and responses")
+}
 
-		loc, err := time.LoadLocation(weatherData.Timezone)
-		if err != nil {
-			panic(err)
-		}
-		localNow := now.In(loc)
-		localBegin := time.Date(localNow.Year(), localNow.Month(), localNow.Day(), 0, 0, 0, 0, loc)
-		return &localBegin, nil
-	}()
+func (c *CaiyunConfig) GetLocationTZ(cyLocation string) (*time.Location, error) {
+	url := fmt.Sprintf(
+		CAIYUNAPI, c.apiKey, cyLocation, c.lang,
+		strconv.FormatInt(3, 10), strconv.FormatInt(72, 10),
+		strconv.FormatInt(time.Now().Unix(), 10),
+		"realtime",
+	)
+	url += "fields="
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if c.debug {
+		log.Printf("caiyun request phase 1 %v \n%v\n", url, string(body))
+	}
+	weatherData := &CaiyunWeather{}
+	if err := json.Unmarshal(body, weatherData); err != nil {
+		return nil, err
+	}
+	return time.LoadLocation(weatherData.Timezone)
+}
+
+func (c *CaiyunConfig) GetWeatherDataFromLocalBegin(lng float64, lat float64, numdays int) (*CaiyunWeather, error) {
+	cyLocation := fmt.Sprintf("%v,%v", lng, lat)
+
+	var localTZ *time.Location = c.tz
+	if localTZ == nil {
+		caiyunTZLocation, err := c.GetLocationTZ(cyLocation)
+		if err != nil {
+			return nil, err
+		}
+		localTZ = caiyunTZLocation
+	}
+
+	localNow := time.Now().In(localTZ)
+	localBegin := time.Date(localNow.Year(), localNow.Month(), localNow.Day(), 0, 0, 0, 0, localTZ)
 
 	url := fmt.Sprintf(
 		CAIYUNAPI, c.apiKey, cyLocation, c.lang,
@@ -324,8 +328,4 @@ func (c *CaiyunConfig) Fetch(location string, numdays int) iface.Data {
 		Longitude: float32(weatherData.Location[1]),
 	}
 	return res
-}
-
-func init() {
-	iface.AllBackends["caiyunapp.com"] = &CaiyunConfig{}
 }
