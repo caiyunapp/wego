@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/ringsaturn/wego/iface"
+	"github.com/caiyunapp/wego/iface"
 )
 
 type jsnConfig struct {

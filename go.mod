@@ -1,4 +1,4 @@
-module github.com/ringsaturn/wego
+module github.com/caiyunapp/wego
 
 go 1.17
 
