@@ -28,7 +28,7 @@
 
 To install or update the wego binary into your `$GOPATH` as usual, run:
 ```shell
-go install github.com/ringsaturn/wego@latest
+go install github.com/caiyunapp/wego@latest
 ```
 
 ## Setup

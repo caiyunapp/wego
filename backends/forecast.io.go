@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/ringsaturn/wego/iface"
+	"github.com/caiyunapp/wego/iface"
 )
 
 type forecastConfig struct {
