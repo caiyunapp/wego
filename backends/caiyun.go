@@ -27,8 +27,8 @@ type CaiyunConfig struct {
 
 func (c *CaiyunConfig) Setup() {
 	flag.StringVar(&c.apiKey, "caiyun-api-key", "", "caiyun backend: the api `KEY` to use")
-	flag.StringVar(&c.lang, "caiyun-lang", "en", "caiyun backend: the `LANGUAGE` to request from caiyunapp.com/")
-	flag.BoolVar(&c.debug, "caiyun-debug", true, "caiyun backend: print raw requests and responses")
+	flag.StringVar(&c.lang, "caiyun-lang", "en_US", "caiyun backend: the `LANGUAGE` to request from caiyunapp.com/")
+	flag.BoolVar(&c.debug, "caiyun-debug", false, "caiyun backend: print raw requests and responses")
 }
 
 var SkyconToIfaceCode map[string]iface.WeatherCode

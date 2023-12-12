@@ -62,15 +62,15 @@ type CaiyunWeather struct {
 				} `json:"nearest"`
 			} `json:"precipitation"`
 			AirQuality struct {
-				Pm25 int     `json:"pm25"`
-				Pm10 int     `json:"pm10"`
-				O3   int     `json:"o3"`
-				So2  int     `json:"so2"`
-				No2  int     `json:"no2"`
+				Pm25 float64 `json:"pm25"`
+				Pm10 float64 `json:"pm10"`
+				O3   float64 `json:"o3"`
+				So2  float64 `json:"so2"`
+				No2  float64 `json:"no2"`
 				Co   float64 `json:"co"`
 				Aqi  struct {
-					Chn int `json:"chn"`
-					Usa int `json:"usa"`
+					Chn float64 `json:"chn"`
+					Usa float64 `json:"usa"`
 				} `json:"aqi"`
 				Description struct {
 					Chn string `json:"chn"`
